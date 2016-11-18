@@ -9,6 +9,7 @@ and `go install`
 
 ## Usage
 When running the program, it takes the following flags:
+
 1. `-filename` The name of the file you want to upload
 2. `-fieldname` The field name of the uploaded file in the simulated form that is sent to the url
 3. `-url` The url to make a POST request to
