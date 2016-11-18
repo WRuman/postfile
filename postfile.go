@@ -10,11 +10,17 @@ import (
 	"os"
 )
 
-func getRequestBody(filename string, fieldname string) (buf *bytes.Buffer, err error) {
+type BodyDescriptor struct {
+	body *bytes.Buffer
+	contentType string
+}
+
+func getRequestBody(filename string, fieldname string) (bd *BodyDescriptor, err error) {
 	var fw io.Writer
 	var f *os.File
-	buf = new(bytes.Buffer)
-	w := multipart.NewWriter(buf)
+	bd = new(BodyDescriptor)
+	bd.body = new(bytes.Buffer)
+	w := multipart.NewWriter(bd.body)
 	defer w.Close()
 	// Try opening the file
 	if f, err = os.Open(filename); err != nil {
@@ -29,6 +35,7 @@ func getRequestBody(filename string, fieldname string) (buf *bytes.Buffer, err e
 	if _, err = io.Copy(fw, f); err != nil {
 		return
 	}
+	bd.contentType = w.FormDataContentType()
 	return
 }
 
@@ -47,7 +54,6 @@ func main() {
 	var filename string
 	var fieldname string
 	var url string
-	var contentType string = "multipart/form-data"
 	flag.StringVar(&filename, "filename", "", "File to upload to the target url")
 	flag.StringVar(&fieldname, "fieldname", "", "Fieldname to use in the POSTed form")
 	flag.StringVar(&url, "url", "", "Url to POST to")
@@ -57,12 +63,12 @@ func main() {
 		os.Exit(0)
 	}
 	fmt.Printf("Uploading '%s' to '%s' in form field  '%s'... \n", filename, url, fieldname)
-	buf, ioerr := getRequestBody(filename, fieldname)
+	bd, ioerr := getRequestBody(filename, fieldname)
 	if ioerr != nil {
 		fmt.Printf("Could not read file for upload: %s \n", ioerr.Error())
 		os.Exit(2)
 	}
-	if status, err := post(buf, url, contentType); err != nil {
+	if status, err := post(bd.body, url, bd.contentType); err != nil {
 		fmt.Printf("Request failed: %s \n", err.Error())
 		os.Exit(2)
 	} else {
