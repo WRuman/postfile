@@ -1,5 +1,4 @@
 # Postfile
-=======
 Simple utility for POSTing files as `multipart/form-data`, written in golang
 
 ## Building
